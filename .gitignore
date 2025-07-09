@@ -1,0 +1,5 @@
+# Ignore environment and sensitive files
+.env
+node_modules/
+public/temp/
+.DS_Store
