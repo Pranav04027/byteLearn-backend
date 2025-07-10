@@ -8,6 +8,7 @@ import { cloudinaryDelete } from "../utils/cloudinaryDelete.js";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 
+// Using the Function Crated in User Model
 const generateAccessandRefreshToken = async (userId) => {
   try {
     const user = await User.findById(userId);
@@ -102,7 +103,7 @@ console.log("FILES:", req.files);
       email,
       password,
       username: username.toLowerCase(),
-      role: role || "learner", // Default to learner if not provided
+      role: role || "learner",
     });
 
     const createdUser = await User.findById(user._id).select("-password -refreshToken");
@@ -161,10 +162,10 @@ const loginUser = asyncHandler(async (req, res) => {
   if (!loggedInUser) {
     throw new ApiError(
       501,
-      "An error occured while fetching the loggedin user"
+      "An error occurred while fetching the logged-in user"
     );
   }
-  // Cookie setut, common standard practice
+  // Cookie set up, common standard practice
   const options = {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production", //In development, secure: false , allows testing
@@ -232,7 +233,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
     const options = {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production", //In development, secure: false , allows testing
+      secure: process.env.NODE_ENV === "production",
     };
 
     const { accessToken, refreshToken: newRefreshToken } =
@@ -270,7 +271,7 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
 
   user.password = newPassword;
 
-  await user.save({ validateBeforeSave: false }); // Mongoose
+  await user.save({ validateBeforeSave: false }); // Mongoose logic
 
   return res
     .status(200)
