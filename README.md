@@ -2,45 +2,82 @@
 
 🎓 **Tagline**: Bite-Sized Learning for Everyone
 
-**byte learn** is a video-based educational platform built with **Node.js**, **Express**, **MongoDB**, and **Cloudinary**, designed for educators to share short, structured learning modules and for learners to engage with curated content. This project showcases a full-stack solution with a robust backend API and a forthcoming React frontend, tailored for delivering bite-sized educational content.
+**ByteLearn** is a full-stack video-based educational platform built with **Node.js**, **Express**, **MongoDB**, **Cloudinary**, and a sleek **React** frontend. It enables educators to share short, structured learning modules and helps learners engage with curated content effectively. ByteLearn isn't just a backend service—it's a thoughtfully engineered learning ecosystem.
 
 ---
 
 ## 🚀 Features
-- **User Authentication**: Secure registration and login with JWT-based authentication and refresh tokens.
-- **Lesson Management**: Upload, update, publish, unpublish, and delete lessons (videos) with Cloudinary for media storage.
-- **Categories and Tags**: Organize lessons by subject (e.g., "Programming," "Science") and difficulty (e.g., "Beginner," "Advanced").
-- **User Roles**: Support for **instructor** and **learner** roles with tailored access control.
-- **Progress Tracking**: Track watched lessons to monitor learner progress.
-- **Playlists**: Create, manage, and organize lessons into learning paths.
-- **Engagement**: Like and comment on lessons to foster interactive Q&A discussions.
-- **Scalable Architecture**: Leverage MongoDB aggregation pipelines and pagination for efficient data handling.
+
+### 🔑 User Authentication
+
+* Secure registration and login with **JWT-based** authentication and refresh tokens.
+* Role-based access: `learner` and `instructor`.
+
+### 🎥 Video & Lesson Management
+
+* Upload, update, publish/unpublish, and delete videos.
+* Store media on **Cloudinary**, with **Multer** handling file uploads.
+* Rich metadata: categories, tags, difficulty levels.
+
+### ⏳ Progress Tracking
+
+* Monitor how much of a video each learner has watched.
+* Resume from where you left off, personalized to the learner.
+
+### 📄 Quizzes
+
+* Instructors can create quizzes for each video.
+* Learners can attempt quizzes and track scores.
+* Attempt history with accuracy breakdown.
+
+### 🏆 Recommendation Engine
+
+* Personalized video suggestions based on bookmarks and watch history.
+* Uses video tags, categories, and difficulty to recommend related content.
+
+### 📝 Posts (Micro-Blogging)
+
+* Users can now share short-form educational content (formerly called Tweets).
+* Posts support text, image, and like functionality.
+
+### 🔹 Bookmarks
+
+* Save videos for later.
+* Accessible from the learner dashboard.
+
+### 🔄 Role Switching
+
+* While signing up, users select `instructor` or `learner` role.
+* Instructors see an admin-style dashboard for content management.
 
 ---
 
-## 📚 What I Learned
-- Building a full-stack application with **Express** and **MongoDB** using MVC architecture.
-- Modeling complex relationships in MongoDB with **Mongoose**.
-- Handling file uploads with **Multer** and **Cloudinary**.
-- Implementing secure REST APIs with **JWT** authentication.
-- Designing scalable CRUD operations and media storage.
-- Enhancing APIs with categories, tags, user roles, and progress tracking for educational use.
-- Preparing a backend for seamless integration with a **React** frontend.
+## 📖 What I Learned
+
+* Structuring scalable REST APIs with **Express.js**
+* Secure authentication with **JWT** and refresh tokens
+* Modeling relationships in **MongoDB** with Mongoose
+* Efficient file handling and uploads with **Multer + Cloudinary**
+* Implementing quiz logic and scoring
+* User-centric features like progress tracking and recommendations
+* Frontend integration with **React**, **Vite**, and **Tailwind CSS**
 
 ---
 
-## 🛠 Tech Stack
-- **Backend**: Node.js, Express.js
-- **Database**: MongoDB with Mongoose
-- **Media Storage**: Cloudinary
-- **File Uploads**: Multer
-- **Authentication**: JWT
-- **Utilities**: dotenv, cors, helmet, morgan
-- **Frontend (Planned)**: React.js
+## 🛠️ Tech Stack
+
+* **Backend**: Node.js, Express.js
+* **Database**: MongoDB, Mongoose
+* **Media Storage**: Cloudinary
+* **File Uploads**: Multer
+* **Authentication**: JWT (Access + Refresh)
+* **Frontend**: React.js + Vite + Tailwind CSS
+* **Utilities**: dotenv, cors, helmet, morgan
 
 ---
 
 ## 📁 Project Structure
+
 ```
 byte-learn/
 ├── src/
@@ -59,64 +96,96 @@ byte-learn/
 ---
 
 ## ⚙️ Getting Started
+
 1. **Clone the Repository**
-   ```bash
-   git clone https://github.com/Pranav04027/byte-learn.git
-   cd byte-learn
-   ```
+
+```bash
+git clone https://github.com/Pranav04027/byte-learn.git
+cd byte-learn
+```
+
 2. **Install Dependencies**
-   ```bash
-   npm install
-   ```
+
+```bash
+npm install
+```
+
 3. **Set Up Environment Variables**
-   - Copy `.env.sample` to create a `.env` file.
-   - Add your values (e.g., MongoDB URI, Cloudinary credentials, JWT secret).
-4. **Run the Server**
-   ```bash
-   npm run dev
-   ```
+
+* Copy `.env.sample` to `.env`
+* Fill in MongoDB URI, Cloudinary credentials, JWT secrets
+
+4. **Run the Development Server**
+
+```bash
+npm run dev
+```
 
 ---
 
-## 🧪 API Endpoints
-Key endpoints include:
+## 🔮 API Endpoints (Highlights)
 
-- **POST /api/users/register** - Register a new user (with role selection: instructor/learner)
-- **POST /api/users/login** - User login
-- **POST /api/lessons** - Upload a lesson (video) with category and tags
-- **PATCH /api/lessons/:lessonId** - Update lesson details
-- **DELETE /api/lessons/:lessonId** - Delete a lesson
-- **GET /api/lessons/:lessonId** - Get lesson details
-- **GET /api/lessons?category=Programming&tag=Beginner** - Filter lessons by category and tags
-- **POST /api/users/watched/:lessonId** - Mark a lesson as watched
-- **GET /api/users/watched** - Retrieve watched lessons
-- **POST /api/playlists** - Create a playlist
-- **PATCH /api/playlists/:playlistId** - Update a playlist
-- **POST /api/playlists/:playlistId/:lessonId** - Add lesson to playlist
-- **DELETE /api/playlists/:playlistId/:lessonId** - Remove lesson from playlist
+### ⚡ Auth
 
-**Full API documentation**: [Postman Documentation](https://documenter.getpostman.com/view/45456961/2sB2xBEqF1)
+* `POST /api/users/register` - Register a user
+* `POST /api/users/login` - Login and get tokens
+* `POST /api/users/logout` - Logout and clear cookies
+
+### 🎥 Videos
+
+* `POST /api/videos/create` - Upload new video
+* `PATCH /api/videos/:id` - Update a video
+* `DELETE /api/videos/:id` - Delete video
+* `GET /api/videos/getallvideos` - Public videos (with filters)
+* `GET /api/videos/:id` - Get one video by ID
+
+### 📉 Progress
+
+* `POST /api/progress/:videoId` - Update watch progress
+* `GET /api/progress/my` - Fetch current user's progress
+
+### ✏️ Quizzes
+
+* `POST /api/quiz/create` - Instructor creates quiz for video
+* `GET /api/quiz/:videoId` - Learner fetches quiz
+* `POST /api/quiz/:videoId/submit` - Submit attempt
+
+### 📈 Recommendations
+
+* `GET /api/recommendation/recommended` - Learner gets personalized recommendations
+
+### 📋 Posts (Formerly Tweets)
+
+* `POST /api/posts/create` - Create a post
+* `GET /api/posts/feed` - All posts
+* `POST /api/posts/:id/like` - Like a post
+
+**Full API docs**: [Postman Collection](https://documenter.getpostman.com/view/45456961/2sB2xBEqF1)
 
 ---
 
-## 🖼 Frontend Integration (Planned)
-The **React** frontend will include:
-- **Lesson Upload Form**: Fields for title, description, category, and tags for instructors.
-- **Lesson Browsing**: Filters for categories and tags to help learners find relevant content.
-- **User Registration**: Role selection (instructor/learner) during signup.
-- **Learner Dashboard**: Display watched lessons and progress tracking.
-- **Instructor Dashboard**: Manage uploaded lessons, view statistics, and monitor comments.
+## 🎨 Frontend (In Progress)
+
+The React frontend is built using **Vite** + **Tailwind CSS**, and supports:
+
+* Role-based dashboards
+* Secure route handling
+* Video upload & preview (instructor)
+* Learner dashboard: progress, bookmarks, and recommendations
+* Quiz UI with immediate feedback
+* Post creation and interaction (like Twitter but academic!)
 
 ---
 
-## 🧑‍🎓 Author
-**Pranav Chauhan**  
-A learning project to master full-stack development.  
-📧 [chauhanpranav040@gmail.com](mailto:chauhanpranav040@gmail.com)  
-🐙 [GitHub: Pranav04027](https://github.com/Pranav04027)
+## 👨‍💼 Author
+
+**Pranav Chauhan**
+Passionate about crafting beautiful educational tools.
+📧 [chauhanpranav040@gmail.com](mailto:chauhanpranav040@gmail.com)
+🐙 [GitHub](https://github.com/Pranav04027)
 
 ---
 
-## 📝 License
-This project is licensed under the **MIT License**. Feel free to use and modify for learning purposes.  
-Want to contribute or have suggestions? Open an issue or PR on GitHub!
+## 📄 License
+
+MIT License. Feel free to fork and experiment!
