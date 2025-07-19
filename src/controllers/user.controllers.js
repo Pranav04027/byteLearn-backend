@@ -34,7 +34,7 @@ const generateAccessandRefreshToken = async (userId) => {
 const registerUser = asyncHandler(async (req, res) => {
   const { fullname, email, username, password, role } = req.body;
   console.log("BODY:", req.body);
-console.log("FILES:", req.files);
+  console.log("FILES:", req.files);
 
 
   if ([fullname, username, email, password].some((field) => field?.trim() === "")) {
@@ -113,6 +113,7 @@ console.log("FILES:", req.files);
     return res
       .status(201)
       .json(new ApiResponse(201, createdUser, "User created successfully"));
+
   } catch (error) {
     console.error("Error creating user:", error.message);
     if (avatar?.public_id) {
@@ -134,8 +135,7 @@ const loginUser = asyncHandler(async (req, res) => {
     throw new ApiError(400, "All fields are required");
   }
 
-  const user = await User.findOne({
-    //Mongoose
+  const user = await User.findOne({//Mongoose
     $or: [{ username }, { email }],
   });
 
@@ -150,9 +150,7 @@ const loginUser = asyncHandler(async (req, res) => {
     throw new ApiError(401, "Password is invalid");
   }
 
-  const { accessToken, refreshToken } = await generateAccessandRefreshToken(
-    user._id
-  );
+  const { accessToken, refreshToken } = await generateAccessandRefreshToken(user?._id);
 
   const loggedInUser = await User.findById(user._id).select(
     "-password -refreshToken"
@@ -164,7 +162,7 @@ const loginUser = asyncHandler(async (req, res) => {
       "An error occured while fetching the loggedin user"
     );
   }
-  // Cookie setut, common standard practice
+  // Cookie setup, common standard practice
   const options = {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production", //In development, secure: false , allows testing

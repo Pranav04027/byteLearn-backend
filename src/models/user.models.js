@@ -1,4 +1,3 @@
-
 import mongoose , {Schema} from "mongoose";
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
@@ -41,11 +40,16 @@ const userSchema = new Schema(
         },
         progress: [
             {
-            video: { type: Schema.Types.ObjectId, ref: "Video" },
-            progress: { type: Number, default: 0 },
+                video: { type: Schema.Types.ObjectId, ref: "Video" },
+                progress: { type: Number, default: 0 },
             },
         ],
-        bookmarks: [{ type: Schema.Types.ObjectId, ref: "Video" }],
+        bookmarks: [
+            { 
+                type: Schema.Types.ObjectId,
+                ref: "Video"
+            }
+        ],
         watchHistory: [
             {
                 type: Schema.Types.ObjectId,

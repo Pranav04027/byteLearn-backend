@@ -10,7 +10,10 @@ const quizSchema = new Schema(
     },
     questions: [
       {
-        questionText: { type: String, required: true },
+        questionText: {
+          type: String,
+          required: true
+        },
         options: [
           {
             text: String,

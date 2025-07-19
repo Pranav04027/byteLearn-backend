@@ -4,28 +4,34 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import mongoose from "mongoose";
+import { isValidObjectId } from "mongoose";
 
-export const createQuiz = asyncHandler(async (req, res) => {
+const createQuiz = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
-  const { questions } = req.body;
 
-  if (!mongoose.Types.ObjectId.isValid(videoId)) {
-    throw new ApiError(400, "Invalid video ID");
+  if (!isValidObjectId(videoId)) {
+    throw new ApiError(400, "The VideoId in params is invalid");
   }
+  const { questions } = req.body;
 
   if (!questions || !Array.isArray(questions)) {
     throw new ApiError(400, "Questions array is required");
   }
 
-  const quiz = await Quiz.create({ video: videoId, questions });
+  let quiz;
+  try {
+    quiz = await Quiz.create({ video: videoId, questions: questions });
+  } catch (error) {
+    throw new ApiError(400, "Could not Create quiz in DB");
+  }
 
   res.status(201).json(new ApiResponse(201, quiz, "Quiz created"));
 });
 
-export const getQuizByVideo = asyncHandler(async (req, res) => {
+const getQuizByVideo = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
 
-  if (!mongoose.Types.ObjectId.isValid(videoId)) {
+  if (!isValidObjectId(videoId)) {
     throw new ApiError(400, "Invalid video ID");
   }
 
@@ -36,35 +42,34 @@ export const getQuizByVideo = asyncHandler(async (req, res) => {
   res.status(200).json(new ApiResponse(200, quiz, "Quiz fetched"));
 });
 
-export const submitQuiz = asyncHandler(async (req, res) => {
+const submitQuiz = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
   const { answers } = req.body;
 
-  if (!mongoose.Types.ObjectId.isValid(videoId)) {
+  if (!isValidObjectId(videoId)) {
     throw new ApiError(400, "Invalid video ID");
   }
 
-  if (!Array.isArray(answers)) {
-    throw new ApiError(400, "Answers must be an array");
+  if (!answers || !Array.isArray(answers)) {
+    throw new ApiError(400, "Answers not exist or not in array format");
   }
 
+  // Get the entire quiz object from MongoDB
   const quiz = await Quiz.findOne({ video: videoId });
   if (!quiz) throw new ApiError(404, "Quiz not found");
 
   let score = 0;
-
+  // answers contains the questionId and selected OptionsId
   const results = answers
     .map((answer) => {
       const question = quiz.questions.find(
         (q) => q._id.toString() === answer.question.toString()
       );
-
       if (!question) return null;
 
       const selected = question.options.find(
         (opt) => opt._id.toString() === answer.selectedOption.toString()
       );
-
       if (selected?.isCorrect) score += 1;
 
       return {
@@ -72,8 +77,13 @@ export const submitQuiz = asyncHandler(async (req, res) => {
         selectedOption: selected?._id || null,
         isCorrect: selected?.isCorrect || false,
       };
+    }).filter(Boolean);
+
+    results.forEach((item) => {
+      if(item.isCorrect){
+        score++;
+      }
     })
-    .filter(Boolean);
 
   const attempt = await QuizAttempt.create({
     user: req.user._id,
@@ -101,3 +111,5 @@ export const submitQuiz = asyncHandler(async (req, res) => {
     )
   );
 });
+
+export { createQuiz, getQuizByVideo, submitQuiz };

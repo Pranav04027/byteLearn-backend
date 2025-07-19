@@ -2,10 +2,24 @@ import mongoose, { Schema } from "mongoose";
 
 const quizAttemptSchema = new Schema(
   {
-    user: { type: Schema.Types.ObjectId, ref: "User", required: true },
-    video: { type: Schema.Types.ObjectId, ref: "Video", required: true },
-    score: { type: Number, required: true },
-    total: { type: Number, required: true },
+    user: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: true
+    },
+    video: {
+      type: Schema.Types.ObjectId,
+      ref: "Video",
+      required: true
+    },
+    score: { 
+      type: Number,
+      required: true
+    },
+    total: {
+      type: Number,
+      required: true
+    },
     submittedAnswers: [
       {
         question: String,

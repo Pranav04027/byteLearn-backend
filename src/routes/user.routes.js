@@ -46,7 +46,8 @@ router.route("/current-user").get(verifyJWT, getCurrentUser) // Nothing, Just Sh
 
 router.route("/update-account-details").patch(verifyJWT, updateAccountDetails) // username , email
 
-router.get("/dashboard", verifyJWT, getLearnerDashboard);
+router.get("/dashboard", verifyJWT, getLearnerDashboard); // You know the difference between this and the other version.
+
 router.route("/update-avatar").patch(
     verifyJWT,
     upload.single("avatar"),

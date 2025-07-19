@@ -1,6 +1,7 @@
 import {
   uploadOnCloudinary,
   uploadVideoOnCloudinary,
+  cloudinary,
 } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
@@ -11,13 +12,14 @@ import { cloudinaryDelete } from "../utils/cloudinaryDelete.js";
 import { getPublicIdFromUrl } from "../utils/getCloudinaryPublicid.js";
 
 const publishVideo = asyncHandler(async (req, res) => {
-  const { title, description } = req.body;
-  if (!title || !description) {
-    throw new ApiError(400, "All fields are required");
+  const { title, description, difficulty, category } = req.body;
+
+  if ([title, description, difficulty, category].some((item)=>item.trim()==="")) {
+    throw new ApiError(400, "All fields are required including title, description, difficulty and category");
   }
 
   //Check if it exists already
-  const videoExists = await Video.findOne({ $and: [{ title, description }] });
+  const videoExists = await Video.findOne({$and:[{title:title, description}]});
   if (videoExists) {
     throw new ApiError(400, "The video already Exists");
   }
@@ -64,6 +66,8 @@ const publishVideo = asyncHandler(async (req, res) => {
       description,
       duration: videofile.duration || "0",
       owner: req.user?._id,
+      difficulty,
+      category,
     });
   } catch (error) {
     await cloudinary.uploader.destroy(videofile?.public_id);
@@ -123,6 +127,7 @@ const deleteVideo = asyncHandler(async (req, res) => {
   }
 
   //Validate if the user requesting delete is the owner
+
   if (!video.owner.equals(req.user._id)) {
     // Important
     throw new ApiError(
@@ -134,6 +139,7 @@ const deleteVideo = asyncHandler(async (req, res) => {
   const vidpublicId = getPublicIdFromUrl(video?.videofile);
   const thumbnailpublicId = getPublicIdFromUrl(video?.thumbnail);
 
+  // Delete from cloudinary
   try {
     await cloudinaryDelete(vidpublicId, { resource_type: "video" });
   } catch (error) {
@@ -152,6 +158,7 @@ const deleteVideo = asyncHandler(async (req, res) => {
     );
   }
 
+  // Delete from DB
   try {
     await Video.findByIdAndDelete(videoId);
   } catch (error) {
@@ -166,7 +173,6 @@ const deleteVideo = asyncHandler(async (req, res) => {
 
 const updateVideo = asyncHandler(async (req, res) => {
   // Get video id from params and validate it
-
   const { videoId } = req.params; //string
   if (!videoId) {
     throw new ApiError(400, "could not retrive videoId from params");
@@ -174,6 +180,17 @@ const updateVideo = asyncHandler(async (req, res) => {
 
   if (!isValidObjectId(videoId)) {
     throw new ApiError(400, "Please provide a valid videoId");
+  }
+
+  //get data from body, thumbnail and verify it
+  const { title, description } = req.body;
+  if (!title || !description) {
+    throw new ApiError(400, "All fields are required");
+  }
+
+  const localthumbnailpath = req.file?.path;
+  if (!localthumbnailpath) {
+    throw new ApiError(404, "Could not get the paths for files.");
   }
 
   // Get the Video
@@ -186,17 +203,6 @@ const updateVideo = asyncHandler(async (req, res) => {
       403,
       "UnAuthorised. Login as owner of this video to Update"
     );
-  }
-
-  //get data from body, thumbnail and verify it
-  const { title, description } = req.body;
-  if (!title || !description) {
-    throw new ApiError(400, "All fields are required");
-  }
-
-  const localthumbnailpath = req.file?.path;
-  if (!localthumbnailpath) {
-    throw new ApiError(404, "Could not get the paths for files.");
   }
 
   // Delete old from cloudinary.
@@ -225,8 +231,7 @@ const updateVideo = asyncHandler(async (req, res) => {
   //Update DB
   var updateVideo;
   try {
-    updateVideo = await Video.findByIdAndUpdate(
-      videoId,
+    updateVideo = await Video.findByIdAndUpdate( videoId,
       {
         $set: {
           thumbnail: thumbnailfile?.url,
@@ -268,17 +273,20 @@ const togglePublishStatus = asyncHandler(async (req, res) => {
 
   //Validate User
   if (!video.owner.equals(req.user._id)) {
-    throw new ApiError(403,"UnAuthorised. Login as owner of this video to Update");
+    throw new ApiError(
+      403,
+      "UnAuthorised. Login as owner of this video to Update"
+    );
   }
 
-  //Update
+  //Update toggle status
   var updateVideo;
   try {
     updateVideo = await Video.findByIdAndUpdate(
       videoId,
       {
         $set: {
-          isPublished: !video.isPublished
+          isPublished: !video.isPublished,
         },
       },
       { new: true }
@@ -297,11 +305,9 @@ const togglePublishStatus = asyncHandler(async (req, res) => {
   //response
   return res
     .status(200)
-    .json(new ApiResponse(200, updatedVideo, "isPublished toggled successfully"));
-
-
-
-
+    .json(
+      new ApiResponse(200, updatedVideo, "isPublished toggled successfully")
+    );
 });
 
 const getAllVideos = asyncHandler(async (req, res) => {
@@ -314,19 +320,19 @@ const getAllVideos = asyncHandler(async (req, res) => {
     userId,
     category,
     difficulty,
-    tags
+    tags,
   } = req.query;
 
   const skip = (page - 1) * limit;
 
   let filter = {
-    isPublished: true // only show public content
+    isPublished: true, // only show public content
   };
 
   if (query) {
     filter.$or = [
       { title: { $regex: query, $options: "i" } },
-      { description: { $regex: query, $options: "i" } }
+      { description: { $regex: query, $options: "i" } },
     ];
   }
 
@@ -356,30 +362,41 @@ const getAllVideos = asyncHandler(async (req, res) => {
       .skip(Number(skip))
       .limit(Number(limit));
   } catch (error) {
-    throw new ApiError(500, "Something went wrong while retrieving videos from DB");
+    throw new ApiError(
+      500,
+      "Something went wrong while retrieving videos from DB"
+    );
   }
 
   let total;
   try {
     total = await Video.countDocuments(filter);
   } catch (error) {
-    throw new ApiError(500, "Something went wrong while getting video count from DB");
+    throw new ApiError(
+      500,
+      "Something went wrong while getting video count from DB"
+    );
   }
 
   return res.status(200).json(
-    new ApiResponse(200, {
-      total,
-      page: Number(page),
-      limit: Number(limit),
-      results: videos
-    }, "Fetched videos"));
+    new ApiResponse(
+      200,
+      {
+        total,
+        page: Number(page),
+        limit: Number(limit),
+        results: videos,
+      },
+      "Fetched videos"
+    )
+  );
 });
 
-export { 
+export {
   publishVideo,
   getVideoById,
   deleteVideo,
   updateVideo,
   togglePublishStatus,
-  getAllVideos
+  getAllVideos,
 };

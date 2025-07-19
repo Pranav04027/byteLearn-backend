@@ -25,7 +25,6 @@ const updateProgress = asyncHandler(async (req, res) => {
     user.progress.push({ video: videoId, progress });
   }
 
-  // ✅ Add to watch history if progress is complete
   if (progress >= 95 && !user.watchHistory.includes(videoId)) {
     user.watchHistory.push(videoId);
   }

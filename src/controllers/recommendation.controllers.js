@@ -1,12 +1,10 @@
-import { User } from "../models/user.models.js";
+ import { User } from "../models/user.models.js";
 import { Video } from "../models/video.models.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
 
 export const getRecommendedVideos = asyncHandler(async (req, res) => {
-
-  //Get user with progress and bookmarks
 
   const user = await User.findById(req.user?._id)
     .select("progress bookmarks")
@@ -15,13 +13,16 @@ export const getRecommendedVideos = asyncHandler(async (req, res) => {
 
   if (!user) throw new ApiError(404, "User not found");
 
-  // Collect all interacted videos
+  const watchedThreshold = 90;
+
   const interactedVideos = [
-    ...user.progress.map((entry) => entry.video),
-    ...user.bookmarks,
+    ...user.progress
+    .filter(entry => entry.video && entry.progress >= watchedThreshold)
+    .map(entry => entry.video),
+    ...user.bookmarks.filter(Boolean),
   ];
 
-  //Extract tags, categories, and difficulties
+
   const tags = new Set();
   const categories = new Set();
   const difficulties = new Set();
@@ -32,7 +33,6 @@ export const getRecommendedVideos = asyncHandler(async (req, res) => {
     if (video.difficulty) difficulties.add(video.difficulty);
   }
 
-  //Query similar videos
   const recommendedVideos = await Video.find({
     tags: { $in: Array.from(tags) },
     category: { $in: Array.from(categories) },
