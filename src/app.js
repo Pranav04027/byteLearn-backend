@@ -2,6 +2,8 @@ import express from "express";
 import helmet from "helmet";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import { xss } from 'express-xss-sanitizer';
+import mongoSanitize from 'express-mongo-sanitize'
 
 const app = express();
 
@@ -14,9 +16,18 @@ app.use(
   })
 );
 
+//Body parsers
 app.use(express.json({ limit: "16kb" }));
 app.use(express.urlencoded({ extended: true, limit: "16kb" }));
+
+// XSS(for HTML/JS) and Mongosanitize(for $etc.) sanitization
+app.use(xss());
+app.use(mongoSanitize());
+
+//Static files
 app.use(express.static("public"));
+
+//Cookie Parser
 app.use(cookieParser());
 
 //import routes
