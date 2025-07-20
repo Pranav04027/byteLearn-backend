@@ -13,10 +13,11 @@ const updateProgress = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id);
   if (!user) throw new ApiError(404, "User not found");
 
+  //If no field named progress, create one.
   if (!user.progress) user.progress = [];
 
-  const existing = user.progress.find((entry) =>
-    entry.video.toString() === videoId
+  const existing = user.progress.find((item) =>
+    item.video.toString() === videoId
   );
 
   if (existing) {
@@ -40,7 +41,7 @@ const updateProgress = asyncHandler(async (req, res) => {
 
 
 const getProgress = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user._id)
+  const user = await User.findById(req.user?._id)
     .populate("progress.video", "title thumbnail duration category difficulty")
     .select("progress");
 
@@ -48,7 +49,7 @@ const getProgress = asyncHandler(async (req, res) => {
 });
 
 const getContinueWatching = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user._id)
+  const user = await User.findById(req.user?._id)
     .populate("progress.video", "title thumbnail duration category difficulty");
 
   if (!user) {
@@ -57,8 +58,8 @@ const getContinueWatching = asyncHandler(async (req, res) => {
     );
   }
 
-  const inProgressVideos = user.progress
-    .filter(entry => entry.progress > 0 && entry.progress < 95)
+  const inProgressVideos = 
+  user.progress.filter((entry) => entry.progress > 0 && entry.progress < 95)
     .map(entry => ({
       videoId: entry.video._id,
       title: entry.video.title,

@@ -91,7 +91,7 @@ userSchema.methods.generateAccessToken = function () {
         username: this.username,
     },
     process.env.ACCESS_TOKEN_SECRET,
-    {expiresIn: process.env.ACCESS_TOKEN_EXPIRY})
+    {expiresIn: process.env.ACCESS_TOKEN_EXPIRY}) // expects string values like "15m", "1d", "1h", "10s", Case insensitive
 }
 
 userSchema.methods.generateRefreshToken = function (){
@@ -99,7 +99,7 @@ userSchema.methods.generateRefreshToken = function (){
         _id: this._id,
     },
     process.env.REFRESH_TOKEN_SECRET,
-    {expiresIn: process.env.REFRESH_TOKEN_EXPIRY})
+    {expiresIn: process.env.REFRESH_TOKEN_EXPIRY}) // expects string values like "15m", "1d", "1h", "10s", Case insensitive
 }
 
 // Mongoose, create a new document or structure if not exist in my database named User

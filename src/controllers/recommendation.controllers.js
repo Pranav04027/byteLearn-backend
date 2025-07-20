@@ -13,13 +13,13 @@ export const getRecommendedVideos = asyncHandler(async (req, res) => {
 
   if (!user) throw new ApiError(404, "User not found");
 
-  const watchedThreshold = 90;
+  const watchedThreshold = 65;
 
   const interactedVideos = [
     ...user.progress
     .filter(entry => entry.video && entry.progress >= watchedThreshold)
     .map(entry => entry.video),
-    ...user.bookmarks.filter(Boolean),
+    ...user.bookmarks.filter(Boolean), //Very very good practice.
   ];
 
 

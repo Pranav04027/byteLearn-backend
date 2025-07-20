@@ -8,9 +8,8 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
 const getChannelStats = asyncHandler(async (req, res) => {
-  //PROTECTED
 
-  //Total view Count across all videos
+  //Total view Count across all videos.
   let totalViews;
   try {
     totalViews = await Video.aggregate([

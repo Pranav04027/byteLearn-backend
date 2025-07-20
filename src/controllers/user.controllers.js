@@ -164,16 +164,25 @@ const loginUser = asyncHandler(async (req, res) => {
     );
   }
   // Cookie set up, common standard practice
-  const options = {
+  const optionsaccessTokens = {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production", //In development, secure: false , allows testing
+    sameSite: "Lax",
+    maxAge: 15 * 60 * 1000,
+  };
+
+  const optionsrefreshTokens = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production", //In development, secure: false , allows testing
+    sameSite: "Lax",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
   };
 
   // Tokens are cookies too
   return res
     .status(200)
-    .cookie("accessToken", accessToken, options) //res.cookie(name, value, [options]) STANDARD.
-    .cookie("refreshToken", refreshToken, options)
+    .cookie("accessToken", accessToken, optionsaccessTokens) //res.cookie(name, value, [options]) STANDARD.
+    .cookie("refreshToken", refreshToken, optionsrefreshTokens)
     .json(new ApiResponse(200, loggedInUser, "User loggedin successfully"));
 });
 
@@ -229,25 +238,28 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
       throw new ApiError(401, "Refreshtoken is expired");
     }
 
-    const options = {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-    };
+    const optionsaccessTokens = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production", //In development, secure: false , allows testing
+    sameSite: "Lax",
+    maxAge: 15 * 60 * 1000,
+  };
+
+  const optionsrefreshTokens = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production", //In development, secure: false , allows testing
+    sameSite: "Lax",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  };
 
     const { accessToken, refreshToken: newRefreshToken } =
       await generateAccessandRefreshToken(user._id);
 
     return res
       .status(200)
-      .cookie("accessToken", accessToken, options) //When a new token in a cookie with the same cookie name is set, it automatically replaces the old one on the client’s browser
-      .cookie("refreshToken", newRefreshToken, options)
-      .json(
-        new ApiResponse(
-          200,
-          { accessToken, refreshToken: newRefreshToken },
-          "Access Token refreshed successfully"
-        )
-      );
+      .cookie("accessToken", accessToken, optionsaccessTokens) //When a new token in a cookie with the same cookie name is set, it automatically replaces the old one on the client’s browser
+      .cookie("refreshToken", newRefreshToken, optionsrefreshTokens)
+      .json( new ApiResponse( 200,{ accessToken, refreshToken: newRefreshToken }, "Access Token refreshed successfully"));
   } catch (error) {
     throw new ApiError(
       500,
