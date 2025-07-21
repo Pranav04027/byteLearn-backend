@@ -163,6 +163,7 @@ const loginUser = asyncHandler(async (req, res) => {
       "An error occurred while fetching the logged-in user"
     );
   }
+  
   // Cookie set up, common standard practice
   const optionsaccessTokens = {
     httpOnly: true,

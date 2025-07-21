@@ -70,6 +70,7 @@ const submitQuiz = asyncHandler(async (req, res) => {
       const selected = question.options.find(
         (opt) => opt._id.toString() === answer.selectedOption.toString()
       );
+
       if (selected?.isCorrect) score += 1;
 
       return {
@@ -78,12 +79,6 @@ const submitQuiz = asyncHandler(async (req, res) => {
         isCorrect: selected?.isCorrect || false,
       };
     }).filter(Boolean);
-
-    results.forEach((item) => {
-      if(item.isCorrect){
-        score++;
-      }
-    })
 
   const attempt = await QuizAttempt.create({
     user: req.user._id,
@@ -94,7 +89,7 @@ const submitQuiz = asyncHandler(async (req, res) => {
       isCorrect: r.isCorrect,
     })),
     score,
-    total: quiz.questions.length,
+    total: (score)/(quiz.questions.length || 1)*100,
   });
 
   res.status(200).json(
@@ -103,6 +98,7 @@ const submitQuiz = asyncHandler(async (req, res) => {
       {
         attemptId: attempt._id,
         score,
+        totalPercentage: attempt.total,
         totalQuestions: quiz.questions.length,
         correctAnswers: score,
         result: results,
