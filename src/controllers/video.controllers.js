@@ -14,10 +14,6 @@ import { getPublicIdFromUrl } from "../utils/getCloudinaryPublicid.js";
 const publishVideo = asyncHandler(async (req, res) => {
   const { title, description, difficulty, category } = req.body;
 
-  if ([title, description, difficulty, category].some((item)=> item.trim()==="")) {
-    throw new ApiError(400, "All fields are required including title, description, difficulty and category");
-  }
-
   //Check if it exists already
   const videoExists = await Video.findOne({$and:[{title:title, description}]});
   if (videoExists) {
