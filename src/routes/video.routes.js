@@ -9,8 +9,6 @@ import {
         togglePublishStatus,
         getAllVideos
 } from "../controllers/video.controllers.js"
-import { videoUploadSchema } from "../validators/video.validator.js"
-import { validate } from "../middlewares/validator.middlewares.js"
 
 const router = Router()
 
@@ -31,9 +29,6 @@ router.route("/uploadvideo").post(verifyJWT ,
             maxCount: 1
         }
     ]),
-    validate({
-        body: videoUploadSchema
-    }),
     publishVideo
 )
 
