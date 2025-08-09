@@ -2,7 +2,6 @@
 import dotenv from 'dotenv';
 dotenv.config();
 import mongoose from 'mongoose';
-import bcrypt from 'bcrypt';
 import { faker } from '@faker-js/faker';
 
 import { User } from './models/user.models.js';
@@ -17,7 +16,7 @@ import { Playlist } from './models/playlist.models.js';
 import { Subscription } from './models/subscription.models.js';
 import { DB_NAME } from './constants.js';
 
-const MONGO_URI = `${process.env.MONGODB_URI}/${DB_NAME}`;
+const MONGODB_URI = `${process.env.MONGODB_URI}/${DB_NAME}`;
 
 // Configurable data volume
 const NUM_USERS = 20;
@@ -57,7 +56,7 @@ async function seedUsers() {
   const roles = ['learner', 'instructor'];
   for (let i = 0; i < NUM_USERS; i++) {
     const role = roles[i % 2];
-    const password = await bcrypt.hash('password123', 10);
+    const password = 12345678;
     users.push({
       username: faker.internet.username().toLowerCase() + faker.string.alphanumeric(4),
       email: faker.internet.email().toLowerCase(),

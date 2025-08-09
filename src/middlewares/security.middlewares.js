@@ -25,6 +25,7 @@ export const applysecuritymiddlewares = (app) => {
   app.use(xss());
 
   //Basic rate limiting
+  
   const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 100, // 100 requests per IP
@@ -38,7 +39,8 @@ export const applysecuritymiddlewares = (app) => {
     standardHeaders: true, // Include Rate-Limit headers
     legacyHeaders: false, // Disable X-RateLimit headers
   });
-  app.use("/api", limiter);
+  
+  // app.use("/api", limiter);
 
   //Static files
   app.use(express.static("public"));
