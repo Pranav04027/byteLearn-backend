@@ -7,6 +7,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { Video } from "../models/video.models.js";
+import { VideoView } from "../models/videoView.models.js";
 import { isValidObjectId } from "mongoose";
 import { cloudinaryDelete } from "../utils/cloudinaryDelete.js";
 import { getPublicIdFromUrl } from "../utils/getCloudinaryPublicid.js";
@@ -87,7 +88,7 @@ const publishVideo = asyncHandler(async (req, res) => {
 
   //response
   return res
-    .status(209)
+    .status(201)
     .json(new ApiResponse(209, createdVideo, "Video Created successfully"));
 });
 
@@ -101,7 +102,10 @@ const getVideoById = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Please provide a valid videoId");
   }
 
-  const video = await Video.findById(videoId);
+  const video = await Video.findById(videoId)
+    .populate("owner", "username avatar channelname"); 
+    // 2nd arg = fields to select from User model
+
   if (!video) {
     throw new ApiError(400, "Could not retrive video from DB");
   }
@@ -392,6 +396,42 @@ const getAllVideos = asyncHandler(async (req, res) => {
   );
 });
 
+const addVideoView = async (req, res) => {
+  const { id } = req.params;
+  const userId = req.user?._id || null;
+  const ip =
+    req.headers["x-forwarded-for"]?.split(",")[0]?.trim() ||
+    req.ip ||
+    null;
+
+  // Find video and check ownership
+  const vid = await Video.findById(id).select("owner views");
+  if (!vid) {
+    return res.status(404).json({ message: "Video not found" });
+  }
+
+  // Skip counting if owner is watching their own video
+  if (userId && String(vid.owner) === String(userId)) {
+    return res.json({ counted: false, views: vid.views ?? 0 });
+  }
+
+  // Try to record a unique view
+  try {
+    await VideoView.create({
+      video: id,
+      user: userId || undefined,
+      ip: userId ? undefined : ip
+    });
+    await Video.findByIdAndUpdate(id, { $inc: { views: 1 } });
+  } catch (err) {
+    // Likely a duplicate unique view (ignore)
+  }
+
+  // Get updated views
+  const updated = await Video.findById(id).select("views");
+  return res.json({ counted: true, views: updated?.views ?? vid.views ?? 0 });
+};
+
 export {
   publishVideo,
   getVideoById,
@@ -399,4 +439,5 @@ export {
   updateVideo,
   togglePublishStatus,
   getAllVideos,
+  addVideoView
 };

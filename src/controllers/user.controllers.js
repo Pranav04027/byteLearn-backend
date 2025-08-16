@@ -32,6 +32,43 @@ const generateAccessandRefreshToken = async (userId) => {
   }
 };
 
+// Track a unique view for a video
+const addVideoView = async (req, res) => {
+  const { id } = req.params;
+  const userId = req.user?._id || null;
+  const ip =
+    req.headers["x-forwarded-for"]?.split(",")[0]?.trim() ||
+    req.ip ||
+    null;
+
+  // Find video and check ownership
+  const vid = await Video.findById(id).select("owner views");
+  if (!vid) {
+    return res.status(404).json({ message: "Video not found" });
+  }
+
+  // Skip counting if owner is watching their own video
+  if (userId && String(vid.owner) === String(userId)) {
+    return res.json({ counted: false, views: vid.views ?? 0 });
+  }
+
+  // Try to record a unique view
+  try {
+    await VideoView.create({
+      video: id,
+      user: userId || undefined,
+      ip: userId ? undefined : ip
+    });
+    await Video.findByIdAndUpdate(id, { $inc: { views: 1 } });
+  } catch (err) {
+    // Likely a duplicate unique view (ignore)
+  }
+
+  // Get updated views
+  const updated = await Video.findById(id).select("views");
+  return res.json({ counted: true, views: updated?.views ?? vid.views ?? 0 });
+};
+
 const registerUser = asyncHandler(async (req, res) => {
   const { fullname, email, username, password, role } = req.body;
   console.log("BODY:", req.body);
@@ -567,4 +604,5 @@ export {
   updateUserCoverImage,
   getUserChannelProfile,
   getWatchHistory,
+  addVideoView
 };

@@ -42,6 +42,23 @@ const getQuizByVideo = asyncHandler(async (req, res) => {
   res.status(200).json(new ApiResponse(200, quiz, "Quiz fetched"));
 });
 
+const isquiz = asyncHandler(async (req, res) => {
+  const { videoId } = req.params;
+
+  if (!isValidObjectId(videoId)) {
+    throw new ApiError(400, "Invalid video ID");
+  }
+
+  const quiz = await Quiz.findOne(
+    { video: videoId },
+    { projection: { _id: 1 } }
+  );
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, { exists: !!quiz }, "Quiz existence checked"));
+});
+
 const submitQuiz = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
   const { answers } = req.body;
@@ -78,7 +95,8 @@ const submitQuiz = asyncHandler(async (req, res) => {
         selectedOption: selected?._id || null,
         isCorrect: selected?.isCorrect || false,
       };
-    }).filter(Boolean);
+    })
+    .filter(Boolean);
 
   const attempt = await QuizAttempt.create({
     user: req.user._id,
@@ -89,7 +107,7 @@ const submitQuiz = asyncHandler(async (req, res) => {
       isCorrect: r.isCorrect,
     })),
     score,
-    total: (score)/(quiz.questions.length || 1)*100,
+    total: (score / (quiz.questions.length || 1)) * 100,
   });
 
   res.status(200).json(
@@ -108,4 +126,4 @@ const submitQuiz = asyncHandler(async (req, res) => {
   );
 });
 
-export { createQuiz, getQuizByVideo, submitQuiz };
+export { createQuiz, getQuizByVideo, submitQuiz , isquiz};

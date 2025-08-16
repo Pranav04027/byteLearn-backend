@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { Video } from "../models/video.models.js";
+import { User } from "../models/user.models.js";
 import { Subscription } from "../models/subscription.models.js";
 import { Post } from "../models/post.models.js";
 import { Like } from "../models/like.models.js";
@@ -164,4 +165,73 @@ const getChannelVideos = asyncHandler(async (req, res) => {
 
 });
 
-export { getChannelStats, getChannelVideos };
+const getLikesByVideo = asyncHandler(async (req, res) => {
+  const { videoIds } = req.body;
+  if (!Array.isArray(videoIds) || videoIds.length === 0) {
+    throw new ApiError(400, "videoIds array is required");
+  }
+  const ids = videoIds.map(id => new mongoose.Types.ObjectId(id));
+  const rows = await Like.aggregate([
+    { $match: { video: { $in: ids } } },
+    { $group: { _id: "$video", likeCount: { $sum: 1 } } }
+  ]);
+  // Normalize to a map for easy client merge
+  const map = rows.reduce((acc, r) => { acc[r._id.toString()] = r.likeCount; return acc; }, {});
+  return res.status(200).json(new ApiResponse(200, map, "Likes per video"));
+});
+
+// Parse duration string like "MM:SS" or "HH:MM:SS" to seconds
+const parseDurationToSeconds = (dur) => {
+  if (!dur || typeof dur !== 'string') return 0;
+  const parts = dur.split(":").map(n => Number(n));
+  if (parts.some(isNaN)) return 0;
+  if (parts.length === 3) {
+    const [hh, mm, ss] = parts; return (hh * 3600) + (mm * 60) + ss;
+  }
+  if (parts.length === 2) {
+    const [mm, ss] = parts; return (mm * 60) + ss;
+  }
+  if (parts.length === 1) {
+    return parts[0];
+  }
+  return 0;
+};
+
+// Estimate watch-time and average view duration for the instructor's channel
+const getWatchTimeStats = asyncHandler(async (req, res) => {
+  // Fetch this instructor's videos
+  const vids = await Video.find({ owner: req.user?._id }, { _id: 1, duration: 1 });
+  if (!vids.length) {
+    return res.status(200).json(new ApiResponse(200, { totalWatchTimeHours: 0, avgViewDurationSeconds: 0 }, "No videos for this channel"));
+  }
+  const vidIds = vids.map(v => v._id);
+  const durMap = new Map(vids.map(v => [v._id.toString(), parseDurationToSeconds(v.duration)]));
+
+  // Find users who have progress for these videos (project only needed fields)
+  const users = await User.find({ "progress.video": { $in: vidIds } }, { progress: 1 }).lean();
+
+  let totalSeconds = 0;
+  let countEntries = 0;
+  for (const u of users) {
+    const arr = Array.isArray(u.progress) ? u.progress : [];
+    for (const p of arr) {
+      const vid = p?.video?.toString?.();
+      if (!vid) continue;
+      const durSec = durMap.get(vid) || 0;
+      if (!durSec) continue;
+      const perc = Math.min(100, Math.max(0, Number(p.progress) || 0));
+      const watched = (perc / 100) * durSec;
+      if (watched > 0) {
+        totalSeconds += watched;
+        countEntries += 1;
+      }
+    }
+  }
+
+  const totalWatchTimeHours = Number((totalSeconds / 3600).toFixed(2));
+  const avgViewDurationSeconds = countEntries ? Math.round(totalSeconds / countEntries) : 0;
+
+  return res.status(200).json(new ApiResponse(200, { totalWatchTimeHours, avgViewDurationSeconds }, "Watch-time stats"));
+});
+
+export { getChannelStats, getChannelVideos, getLikesByVideo, getWatchTimeStats };
