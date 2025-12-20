@@ -35,6 +35,31 @@
 * Personalized video suggestions based on bookmarks and watch history.
 * Uses video tags, categories, and difficulty to recommend related content.
 
+### 🤖 Automatic Quiz Generation
+
+* Automatic quiz generation from uploaded Video.
+* Powered by a separate AI microservice.
+* Microservice Repository: [genAI_autoquiz_fromvid](https://github.com/Pranav04027/genAI_autoquiz_fromvid)
+
+### 📂 Playlists
+
+* Create and manage personal playlists.
+* Add videos to playlists for organized learning.
+* Public and private playlist visibility.
+
+### 💬 Interactivity
+
+* **Comments**: Nested comments on videos to discuss topics.
+* **Likes**: Like videos and posts to show appreciation.
+* **Community**: Engage with instructors and other learners.
+
+### 🛡️ Advanced Security
+
+* **Helmet**: Secure HTTP headers.
+* **Rate Limiting**: Protects against brute-force and DDoS attacks.
+* **Data Sanitization**: Prevents XSS and NoSQL injection attacks.
+* **CORS**: Configured for secure cross-origin resource sharing.
+
 ### 📝 Posts (Micro-Blogging)
 
 * Users can now share short-form educational content (formerly called Tweets).
@@ -73,6 +98,7 @@
 * **Authentication**: JWT (Access + Refresh)
 * **Frontend**: React.js + Vite + Tailwind CSS
 * **Utilities**: dotenv, cors, helmet, morgan
+* **Security**: express-rate-limit, express-mongo-sanitize, express-xss-sanitizer
 
 ---
 
@@ -164,16 +190,13 @@ npm run dev
 
 ---
 
-## 🎨 Frontend (In Progress)
+## 🎨 Frontend
 
-The React frontend is built using **Vite** + **Tailwind CSS**, and supports:
+The frontend is a separate modern application built with **React 19** and **Vite**.
 
-* Role-based dashboards
-* Secure route handling
-* Video upload & preview (instructor)
-* Learner dashboard: progress, bookmarks, and recommendations
-* Quiz UI with immediate feedback
-* Post creation and interaction (like Twitter but academic!)
+* **Repository**: [bytelearn-fronted](https://github.com/Pranav04027/bytelearn-fronted)
+* **Tech Stack**: React 19, Vite, Tailwind CSS, Context API.
+* **Features**: Role-based dashboards, Video playback, Quiz UI, Community interaction.
 
 ---
 
